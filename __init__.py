@@ -90,6 +90,16 @@ class basic(PBF):
                 type = "command"
             ),
             RegCmd(
+                name = "chatgpt ",
+                usage = "chatgpt <内容>",
+                permission = "anyone",
+                function = "basic@chatgpt",
+                description = "chatgpt",
+                mode = "ChatGPT",
+                hidden = 0,
+                type = "command"
+            ),
+            RegCmd(
                 name = "人机验证 ",
                 usage = "见提示",
                 permission = "anyone",
@@ -454,7 +464,7 @@ class basic(PBF):
     def getVerifyStatus(self):
         for i in range(len(increaseVerifyList)):
             if increaseVerifyList[i].get('uid') == self.data.se.get('user_id') and increaseVerifyList[i].get('gid') == self.data.se.get('group_id'):
-                if increaseVerifyList[l]["pswd"] == "continue":
+                if increaseVerifyList[i]["pswd"] == "continue":
                     return False
                 return True
         return False
@@ -476,4 +486,18 @@ class basic(PBF):
         
         cache.refreshFromSql('groupSettings')
     
+    def chatgpt(self):
+        try:
+            from PbfStruct import chatbot
+
+            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] 正在获取...")
+
+            message = ""
+            for i in chatbot.ask(self.data.message):
+                message = i.get('message')
+            
+            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] {message}")
+        except Exception as e:
+            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] 截获错误：{e}")
+
 increaseVerifyList = []
