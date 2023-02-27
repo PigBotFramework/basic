@@ -498,6 +498,6 @@ class basic(PBF):
             
             self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] {message}")
         except Exception as e:
-            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] 截获错误：{e}")
+            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] 截获错误：{e}\n请重试！")
 
 increaseVerifyList = []
