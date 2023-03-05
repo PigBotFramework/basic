@@ -498,6 +498,7 @@ class basic(PBF):
             
             self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] {message}")
         except Exception as e:
-            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] 截获错误：{e}\n请重试！")
+            self.send(f"[CQ:reply,id={self.data.se.get('message_id')}] 发生错误，可能是正在生成回答（同一会话不支持并发）或者请求频率超限！\n具体错误详见日志")
+            self.logger.warning(traceback.format_exc())
 
 increaseVerifyList = []
