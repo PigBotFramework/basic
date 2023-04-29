@@ -344,7 +344,8 @@ class basic(PBF):
         usage = "",
         permission = "anyone",
         description = "监听request事件",
-        mode = "只因器人"
+        mode = "只因器人",
+        type = "request"
     )
     def requestListener(self):
         se = self.data.se
@@ -401,7 +402,8 @@ class basic(PBF):
         usage = "",
         permission = "anyone",
         description = "监听notice事件",
-        mode = "只因器人"
+        mode = "只因器人",
+        type = "notice"
     )
     def noticeListener(self):
         userCoin = self.data.userCoin
