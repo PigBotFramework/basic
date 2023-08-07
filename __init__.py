@@ -14,6 +14,8 @@ from pbf.statement.FaceStatement import FaceStatement
 from pbf.statement.TextStatement import TextStatement
 from pbf.utils.CQCode import CQCode
 from pbf.utils.RegCmd import RegCmd
+from pbf.model.KeywordModel import KeywordModel
+from pbf.model.SettingNameModel import SettingNameModel
 
 _name = "基础插件"
 _version = "1.0.0"
@@ -49,7 +51,8 @@ class basic(PBF):
         usage="",
         permission="anyone",
         description="监听message事件",
-        mode="只因器人"
+        mode="只因器人",
+        type="message"
     )
     def messageListener(self):
         p("messageListener")
@@ -109,7 +112,9 @@ class basic(PBF):
             client.msg(
                 Statement('reply', id=se.get('message_id')),
                 TextStatement(f'{botSettings._get("name")}想起来你还没有注册哦~', 1),
-                TextStatement('发送“注册”可以让机器人认识你啦QAQ')
+                TextStatement('发送“'),
+                TextStatement('注册', transFlag=False),
+                TextStatement('”可以让机器人认识你啦QAQ')
             ).send()
 
         # 防刷屏
@@ -153,7 +158,6 @@ class basic(PBF):
 
         try:
             if gid != None:
-                print('incre', settings._get('increase_verify'))
                 if settings._get('increase_verify', default=0) != 0:
                     if pbf.execPlugin('basic@getVerifyStatus') == True and '人机验证 ' not in message:
                         client.CallApi('delete_msg', {'message_id': se.get('message_id')})
@@ -185,7 +189,7 @@ class basic(PBF):
             else:
                 kwFlag = 1
             if kwFlag and not only_for_uid:
-                keywordlist = Cache.get('keywordList').get(uuid, [])
+                keywordlist = KeywordModel()._getAll()
                 for i in keywordlist:
                     replyFlag = False
                     if userCoin >= i.get('coin') and (i.get("qn") == 0 or gid == i.get("qn")):
@@ -214,7 +218,7 @@ class basic(PBF):
             FaceStatement(151),
             TextStatement('本群机器人配置：')
         ]
-        for i in Cache.get('settingName'):
+        for i in SettingNameModel()._getAll():
             if int(i.get('isHide')) == 1:
                 continue
 
@@ -224,7 +228,7 @@ class basic(PBF):
             messageList.append(TextStatement('：'))
             messageList.append(TextStatement(i.get('description'), 1))
             messageList.append(TextStatement('    值：'))
-            messageList.append(TextStatement(settings._get(i.get('description'))))
+            messageList.append(TextStatement(settings._get(i.get('description')), transFlag=False))
 
             if i.get('other') != '':
                 messageList.append(TextStatement(' ', 1))
@@ -340,10 +344,10 @@ class basic(PBF):
                     TextStatement(promisetext, 1),
                     FaceStatement(54),
                     TextStatement('指令分类：'),
-                    TextStatement(i.mode, 1),
+                    TextStatement(i.mode, 1, transFlag=False),
                     FaceStatement(54),
                     TextStatement('指令别名：'),
-                    TextStatement(alias, 1),
+                    TextStatement(alias, 1, transFlag=False),
                     FaceStatement(54),
                     TextStatement('指令执行：'),
                     TextStatement(i.function)
@@ -385,7 +389,7 @@ class basic(PBF):
                     self.client.msg(
                         FaceStatement(151),
                         TextStatement(f'已禁止用户{uid}加群', 1),
-                        TextStatement(f'原因：{isGlobalBanned.get("reason")}')
+                        TextStatement(f'原因：{isGlobalBanned._get("reason")}')
                     ).custom(None, gid)
             elif settings._get('autoAcceptGroup') == 0:
                 self.client.msg(
@@ -401,12 +405,12 @@ class basic(PBF):
                 self.client.msg(
                     FaceStatement(151),
                     TextStatement(f'已禁止用户{uid}加好友', 1),
-                    TextStatement(f'原因：{isGlobalBanned.get("reason")}')
+                    TextStatement(f'原因：{isGlobalBanned._get("reason")}')
                 ).custom(botSettings._get('owner'))
                 self.client.msg(
                     FaceStatement(151),
                     TextStatement(f'已禁止用户{uid}加好友', 1),
-                    TextStatement(f'原因：{isGlobalBanned.get("reason")}')
+                    TextStatement(f'原因：{isGlobalBanned._get("reason")}')
                 ).custom(botSettings._get('second_owner'))
 
     @RegCmd(
@@ -432,8 +436,7 @@ class basic(PBF):
             # 禁言机器人
             self.checkBan()
 
-        elif se.get('notice_type') == 'group_recall' and settings._get('recallFlag') != 0 and se.get(
-                'operator_id') != botSettings._get('myselfqn') and se.get('user_id') != botSettings._get('myselfqn'):
+        elif se.get('notice_type') == 'group_recall' and int(settings._get('recallFlag')) != 0 and se.get('operator_id') != botSettings._get('myselfqn') and se.get('user_id') != botSettings._get('myselfqn'):
             # 消息防撤回
             data = self.client.CallApi('get_msg', {"message_id": se.get('message_id')})
             if BanWords(self.data).find(data.get('data').get('message')) == False and 'http' not in data.get(
@@ -487,7 +490,7 @@ class basic(PBF):
                 self.client.msg().raw(message)
                 if uid == botSettings._get("myselfqn"):
                     self.client.msg().raw(
-                        "使用提示：机器人有很多功能，而所有这些功能并不一定适用于所有群聊，如果您不想启用某个功能，可以使用指令「修改设置」来更改去群聊设置。\n禁言机器人永远是一个最坏的做法！")
+                        f"{botSettings._get('name')}悄悄告诉你，我有很多功能，但是有些功能可能你并不需要，你可以发送指令「修改设置」来关掉他们。\n无脑禁言我会惹怒我的哦！")
             if settings._get('increase_verify') != 0:
                 self.increaseVerify()
 
@@ -507,7 +510,7 @@ class basic(PBF):
                     if i[0] in message:
                         message = message.replace(i[0], str(i[1]))
 
-                self.client.msg().raw(message)
+                self.send(message)
 
             elif 'kick' in se.get('sub_type'):
                 message = self.data.groupSettings._get("decrease_notice_kick")
@@ -518,13 +521,13 @@ class basic(PBF):
                      f"[CQ:image,Cache=0,url=http://q1.qlogo.cn/g?b=qq&nk={uid}&s=100,file=http://q1.qlogo.cn/g?b=qq&nk={uid}&s=100]"],
                     ["{username}", userdata.get("nickname")],
                     ["{userlevel}", userdata.get("level")],
-                    ["{operator}", se.get("operator")]
+                    ["{operator}", se.get("operator_id")]
                 ]
                 for i in replaceList:
                     if i[0] in message:
                         message = message.replace(i[0], str(i[1]))
 
-                self.client.msg().raw(message)
+                self.send(message)
 
         elif se.get('notice_type') == 'essence':
             # 精华消息
@@ -571,8 +574,9 @@ class basic(PBF):
         increaseVerifyList.append({"uid": uid, "gid": gid, "pswd": pswd})
         self.client.msg(
             AtStatement(uid),
-            TextStatement(f'请在{limit}秒内发送指令“人机验证 {pswd}”'),
-            TextStatement('注意中间有空格！')
+            TextStatement(f'请在{limit}秒内发送指令“'),
+            TextStatement(f'人机验证 {pswd}', transFlag=False),
+            TextStatement('”注意中间有空格！')
         ).send()
         l = 0
         for i in range(len(increaseVerifyList)):
@@ -608,12 +612,12 @@ class basic(PBF):
             # 解禁言
             return
 
-        self.data.groupSettings._set("bannedCount", int(self.data.groupSettings._get("bannedCount"))+1)
+        self.data.groupSettings._set(bannedCount=int(self.data.groupSettings._get("bannedCount"))+1)
 
         if int(self.data.groupSettings._get("bannedCount")) + 1 >= int(self.data.botSettings._get("bannedCount")):
             # 超过次数，自动退群
             self.client.CallApi('set_group_leave', {"group_id": self.data.se.get("group_id")})
-            self.data.groupSettings._set("bannedCount", 0)
+            self.data.groupSettings._set(bannedCount=0)
             if self.data.groupSettings._get("connectQQ"):
                 self.client.msg(TextStatement(
                     "[自动消息] 请注意，您关联的群组（{}）因违反机器人规定致使机器人退群，您将会承担连带责任".format(
@@ -624,8 +628,6 @@ class basic(PBF):
                                                                               int(self.data.groupSettings._get(
                                                                                   "bannedCount")) + 1))).custom(
                 self.data.botSettings._get("owner"))
-
-        Cache.refreshFromSql('groupSettings')
 
     @RegCmd(
         name="chatgpt ",
