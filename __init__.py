@@ -561,10 +561,12 @@ class basic(PBF):
         for i in range(len(increaseVerifyList)):
             if increaseVerifyList[i].get('uid') == uid and increaseVerifyList[i].get('gid') == gid:
                 if increaseVerifyList[i].get('pswd') == self.data.message:
+                    self.send('正在验证...')
                     increaseVerifyList[i]['pswd'] = None
                 else:
                     self.client.msg().raw('你这验证码太假了！')
-                break
+                return
+        self.send(f'[CQ:at,qq={uid}] 没有找到验证信息！')
 
     def increaseVerify(self):
         uid = self.data.se.get('user_id')
@@ -583,7 +585,9 @@ class basic(PBF):
             if increaseVerifyList[i].get('uid') == uid and increaseVerifyList[i].get('gid') == gid:
                 l = i
                 break
+        limit = int(limit)
         while limit >= 0:
+            # print(increaseVerifyList)
             if increaseVerifyList[l].get('pswd') == None:
                 increaseVerifyList[l]["pswd"] = "continue"
                 self.client.msg().raw('[CQ:at,qq={0}] 恭喜，验证通过！'.format(uid))
