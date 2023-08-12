@@ -168,8 +168,8 @@ class basic(PBF):
             if uid == botSettings._get('owner') or uid == botSettings._get('second_owner') or se.get('sender').get(
                     'role') != 'member':
                 reply_id = CQCode(message).get('id', type='reply')
-                client.CallApi('delete_msg', {'message_id': reply_id})
                 client.CallApi('delete_msg', {'message_id': se.get('message_id')})
+                client.CallApi('delete_msg', {'message_id': reply_id})
                 return
             else:
                 client.msg(TextStatement('[CQ:face,id=151] 就你？先拿到管理员再说吧！')).send()
