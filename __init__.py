@@ -192,7 +192,7 @@ class basic(PBF):
                 keywordlist = KeywordModel()._getAll()
                 for i in keywordlist:
                     replyFlag = False
-                    if userCoin >= i.get('coin') and (i.get("qn") == 0 or gid == i.get("qn")):
+                    if int(userCoin) >= int(i.get('coin')) and (i.get("qn") == 0 or gid == i.get("qn")):
                         replyFlag = True
                     if replyFlag == True:
                         replyKey = regex.replace(i.get('key'))
